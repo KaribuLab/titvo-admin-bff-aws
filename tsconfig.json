@@ -1,0 +1,52 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "module": "ESNext",
+    "rootDir": "./",
+    "moduleResolution": "Node",
+    "paths": {
+      "@titvo/shared": [
+        "./shared/index.ts"
+      ],
+      "@infrastructure/*": [
+        "./src/infrastructure/*"
+      ],
+      "@app/*": [
+        "./src/app/*"
+      ],
+      "@core/*": [
+        "./src/core/*"
+      ],
+      "@auth/*": [
+        "./auth/src/*"
+      ],
+      "@aws/*": [
+        "./lib/aws/src/*"
+      ],
+      "@shared/*": [
+        "./shared/src/*"
+      ]
+    },
+    "outDir": "./build",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "skipLibCheck": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "shared/**/*.ts",
+    "lib/aws/**/*.ts",
+    "auth/**/*.ts",
+    "test/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "**/*.js"
+  ]
+}

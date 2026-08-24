@@ -1,0 +1,9 @@
+[submodule "shared"]
+	path = shared
+	url = https://github.com/KaribuLab/titvo-shared.git
+[submodule "auth"]
+	path = auth
+	url = git@github.com:KaribuLab/titvo-auth.git
+[submodule "lib/aws"]
+	path = lib/aws
+	url = git@github.com:KaribuLab/titvo-lambda-shared.git

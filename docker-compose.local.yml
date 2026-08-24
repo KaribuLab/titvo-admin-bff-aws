@@ -1,0 +1,18 @@
+# Local-only AWS stack for testing titvo-admin-console end to end without
+# touching real AWS. Provides DynamoDB + Secrets Manager, the only two AWS
+# services this change's new components (titvo-admin-bff-aws, and
+# titvo-auth transitively) actually call.
+#
+# Usage: see docs/local-development.md at the repo root.
+services:
+  localstack:
+    image: localstack/localstack:3
+    container_name: titvo-admin-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=dynamodb,secretsmanager
+      - DEBUG=0
+      - DEFAULT_REGION=us-east-1
+    volumes:
+      - "./.localstack:/var/lib/localstack"
