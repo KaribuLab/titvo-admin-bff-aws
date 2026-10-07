@@ -9,8 +9,8 @@ cobertura conservan su estado original; no se inventa ejecución ni consumo.
 
 El campo es aditivo y no cambia autenticación, permisos, claves, tablas ni
 endpoints. Se despliega usando el mecanismo AWS actual. Integrar primero
-`titvo-agent-aws/codex/cli-fullscan-aws` y esta rama, luego
-`titvo-admin-web/codex/scan-dashboard`. Un frontend anterior ignora el campo.
+`titvo-agent-aws/feat/cli-fullscan-aws` y esta rama, luego
+`titvo-admin-web/feat/scan-dashboard`. Un frontend anterior ignora el campo.
 El frontend nuevo admite respuestas anteriores sin `execution_status`.
 
 Los hallazgos completos siguen en el reporte HTML publicado por el Agent.
