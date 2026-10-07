@@ -4,6 +4,7 @@ import { Logger } from '@nestjs/common'
 import { withRetry } from '@titvo/aws'
 import { ScanRepository } from '@core/scan/scan.repository'
 import { ScanDetail, ScanSummary } from '@core/scan/scan.entity'
+import { executionStatusFromResult } from '@core/scan/scan-outcome'
 
 export interface ScanRepositoryOptions {
   taskTableName: string
@@ -56,7 +57,7 @@ export class DynamoScanRepository extends ScanRepository {
 
   async findById (scanId: string): Promise<ScanDetail | null> {
     const result = await withRetry(async () => {
-      return this.dynamoDBClient.send(
+      return await this.dynamoDBClient.send(
         new GetItemCommand({
           TableName: this.taskTableName,
           Key: { scan_id: { S: scanId } }
@@ -74,7 +75,7 @@ export class DynamoScanRepository extends ScanRepository {
   private async queryByRepositoryId (repositoryId: string, limit?: number): Promise<ScanSummary[]> {
     try {
       const result = await withRetry(async () => {
-        return this.dynamoDBClient.send(
+        return await this.dynamoDBClient.send(
           new QueryCommand({
             TableName: this.taskTableName,
             IndexName: REPOSITORY_ID_INDEX,
@@ -113,6 +114,7 @@ function mapItemToScanSummary (item: Record<string, AttributeValue>): ScanSummar
     scanId: item.scan_id?.S ?? '',
     repositoryId: item.repository_id?.S ?? '',
     status: item.status?.S ?? 'unknown',
+    executionStatus: executionStatusFromResult(toNative(item.scan_result ?? item.result)),
     source: item.source?.S,
     branch: item.branch?.S,
     createdAt: item.created_at?.S,

@@ -141,3 +141,19 @@ describe('createScanRepository', () => {
     expect(repository).toBeInstanceOf(DynamoScanRepository)
   })
 })
+
+
+describe('measured execution through DynamoDB and the HTTP response', () => {
+  it('preserves a failed security evaluation while exposing completed execution', async () => {
+    const item = { ...scanItemB, result: { M: { coverage: { M: { complete: { BOOL: true } } }, issues_count: { N: '3' } } } }
+    const client = buildClient(async () => ({ Item: item, Items: [item] }))
+    const repository = new DynamoScanRepository(client as any, 'task-table')
+    const detail = await repository.findById('scan-1')
+    expect(detail).toMatchObject({ status: 'FAILED', executionStatus: 'COMPLETED', result: { issues_count: 3 } })
+    const { handleGetScan, handleListScansForRepo } = await import('@infrastructure/scan/scans.handler')
+    const response = await handleGetScan({ execute: async () => detail } as any, 'scan-1')
+    expect(JSON.parse(response.body as string)).toMatchObject({ status: 'FAILED', execution_status: 'COMPLETED', result: { issues_count: 3 } })
+    const listResponse = await handleListScansForRepo({ execute: async () => await repository.findAllByRepositoryId('repo-1') } as any, 'repo-1')
+    expect(JSON.parse(listResponse.body as string).items[0]).toMatchObject({ status: 'FAILED', execution_status: 'COMPLETED' })
+  })
+})

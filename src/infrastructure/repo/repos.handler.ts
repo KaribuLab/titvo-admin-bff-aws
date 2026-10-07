@@ -13,6 +13,7 @@ function toWireShape (item: RepoListItem): Record<string, unknown> {
       : {
           scan_id: item.lastScan.scanId,
           status: item.lastScan.status,
+          execution_status: item.lastScan.executionStatus,
           created_at: item.lastScan.createdAt
         }
   }
