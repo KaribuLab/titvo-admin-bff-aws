@@ -11,6 +11,8 @@ export interface ScanSummary {
   scanId: string
   repositoryId: string
   status: ScanStatus
+  /** Measured execution, when available; raw pipeline status is preserved. */
+  executionStatus?: string
   source?: string
   branch?: string
   createdAt?: string

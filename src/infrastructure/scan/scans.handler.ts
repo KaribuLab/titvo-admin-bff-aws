@@ -26,6 +26,7 @@ function toSummaryWireShape (item: ScanSummary): Record<string, unknown> {
   return {
     scan_id: item.scanId,
     status: item.status,
+    execution_status: item.executionStatus,
     source: item.source,
     branch: item.branch,
     created_at: item.createdAt,
@@ -38,6 +39,7 @@ function toDetailWireShape (item: ScanDetail): Record<string, unknown> {
     scan_id: item.scanId,
     repository_id: item.repositoryId,
     status: item.status,
+    execution_status: item.executionStatus,
     source: item.source,
     branch: item.branch,
     args: item.args,
