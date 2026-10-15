@@ -55,6 +55,26 @@ Structured handler responses preserve status, ordinary headers, binary base64 bo
 
 The transport tests exercise real login/me/logout response handlers with fake use cases, simultaneous independent sessions, cookie clearing, route rejection, byte boundaries, malformed requests, binary responses, and recovery after errors. This establishes local transport behavior, not AWS runtime, origin signing, production auth, latency, or cost proof.
 
+## Observed local integration smoke
+
+The actual `pilot-build/index.mjs` bundle also passed **15 public HTTP checks**
+against a dedicated LocalStack 3 container with fresh tables, secrets and a fake
+admin. Business handlers were not mocked. Checks covered login/session/config
+reads, unchanged Secure/HttpOnly/SameSite=Strict cookies, invalid input and
+unsupported routes, logout, and rejection of the original cookie after logout.
+The dedicated server/container were stopped after testing; no existing local
+containers or production resources were changed. This was an API test, not a
+browser or CloudFront test. Local logs remain ignored under
+`pilot-build/local-smoke/`; no local credentials, datasets or binaries belong in
+this branch.
+
+For peer review, compare this branch from commit
+`4a47fe49d51cfe1c359bb1afa7036afc013f8438`, the original
+`feat/scan-execution-summary` branch point. Comparing directly with `main` also
+includes the earlier scan-summary work. The transport and infrastructure are
+separate work-unit commits; future deployment and any PR require separate
+approval.
+
 ## Infrastructure seam and next step
 
 See [the isolated infrastructure preparation](../pilot/web-functions/README.md) for provider pins, IAM-authenticated origin protection, pilot data isolation, and validation prerequisites. The infrastructure must package `pilot-build/index.mjs`, select Node24/ARM64, and preserve the runtime-provided `AWS_LAMBDA_HTTP_ENDPOINT`. The pilot has **no stage path**; do not add `/v1` in origin forwarding. CloudFront must forward cookies and the query string and must not cache authenticated responses. Local Terraform validation and four provider-mocked tests passed with the pinned providers; see the infrastructure guide for results and reproduction commands. Actual AWS startup, ARM64 runtime behavior, origin signing and browser authentication remain unverified. Any later activation requires a separate operator decision; there is no public-origin fallback or deployment permission here.

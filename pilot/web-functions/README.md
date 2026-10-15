@@ -22,8 +22,10 @@ source portion of T1/S1; it does not demonstrate functional deployment or auth.
 | Endpoint | `HomeRegion` + `IamAuth`, revision weight 100; no public fallback |
 | CloudFront | Lambda OAC, `always-amz-auth`/`sigv4`, HTTPS origin, no API caching |
 
-No AWS account calls, deployment, secret initialization, data seeding,
-performance measurements, or cost comparisons were performed. Terraform 1.9.8
+No AWS account calls, deployment, AWS secret initialization or data seeding,
+performance measurements, or cost comparisons were performed. A separate
+loopback-only LocalStack smoke seeded disposable local data and passed 15 API
+checks using the actual bundle; see the runtime guide for the observed scope. Terraform 1.9.8
 was installed locally after the installer-managed executable was checked and
 found absent. Provider initialization downloaded the pinned, HashiCorp-signed
 providers; it did not access an AWS account. Local schema/mock checks are not
