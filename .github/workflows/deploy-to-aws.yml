@@ -1,0 +1,97 @@
+name: Deploy conventional BFF to AWS
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: GitHub environment with approved AWS target configuration
+        required: true
+        type: environment
+
+permissions: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: ${{ inputs.environment }}
+    concurrency:
+      group: admin-bff-${{ inputs.environment }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      AWS_STAGE: ${{ vars.AWS_STAGE }}
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+
+    steps:
+      - name: Validate target configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          for key in DEPLOY_ENVIRONMENT AWS_REGION AWS_STAGE AWS_ACCOUNT_ID AWS_ROLE_ARN; do
+            if [[ -z "${!key:-}" ]]; then
+              echo "Missing required configuration: $key" >&2
+              exit 1
+            fi
+          done
+          invalid() { echo "Invalid configuration: $1" >&2; exit 1; }
+          [[ "$AWS_ACCOUNT_ID" =~ ^[0-9]{12}$ ]] || invalid AWS_ACCOUNT_ID
+          [[ "$AWS_REGION" =~ ^[a-z]{2}(-[a-z]+)+-[0-9]+$ ]] || invalid AWS_REGION
+          [[ "$AWS_STAGE" == prod || "$AWS_STAGE" == test ]] || invalid AWS_STAGE
+          [[ "$AWS_ROLE_ARN" =~ ^arn:(aws|aws-us-gov|aws-cn):iam::${AWS_ACCOUNT_ID}:role/[A-Za-z0-9_+=,.@/-]+$ ]] || invalid AWS_ROLE_ARN
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ github.token }}
+          persist-credentials: true
+          # Without ssh-key, checkout rewrites git@github.com: URLs to HTTPS
+          # and configures token authentication for recursive submodules.
+          submodules: recursive
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          allowed-account-ids: ${{ env.AWS_ACCOUNT_ID }}
+          role-session-name: admin-bff-${{ github.run_id }}
+          unset-current-credentials: true
+
+      - name: Verify AWS account
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual_account="$(aws sts get-caller-identity --query Account --output text)"
+          if [[ "$actual_account" != "$AWS_ACCOUNT_ID" ]]; then
+            echo "AWS account mismatch; refusing deployment" >&2
+            exit 1
+          fi
+
+      - name: Apply Terragrunt
+        uses: gruntwork-io/terragrunt-action@v2
+        with:
+          tf_version: "1.9.8"
+          tg_version: "0.69.1"
+          tg_dir: aws
+          tg_command: run-all apply --terragrunt-non-interactive -auto-approve
