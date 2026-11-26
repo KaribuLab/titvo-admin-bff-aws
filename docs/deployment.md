@@ -12,14 +12,14 @@ environment per AWS target; concurrency is serialized by environment, not accoun
 Environment protection is an operator prerequisite, not automatically provisioned
 by this workflow. Never approve an unreviewed workflow ref: it receives OIDC rights.
 
-Set these environment variables in GitHub Settings → Environments:
+Set these environment variables and secrets in GitHub Settings → Environments:
 
-| Variable | Required value |
-| --- | --- |
-| `AWS_REGION` | Explicit AWS region used by the existing infrastructure |
-| `AWS_STAGE` | `prod` or `test`; no implicit production or localstack fallback |
-| `AWS_ACCOUNT_ID` | Expected 12-digit account, including any leading zeroes |
-| `AWS_ROLE_ARN` | Deployment role ARN in that same account |
+| Name | Kind | Required value |
+| --- | --- | --- |
+| `AWS_REGION` | Variable | Explicit AWS region used by the existing infrastructure |
+| `AWS_STAGE` | Variable | `prod` or `test`; no implicit production or localstack fallback |
+| `AWS_ACCOUNT_ID` | Secret | Expected 12-digit account, including any leading zeroes |
+| `AWS_ROLE_ARN` | Secret | Deployment role ARN in that same account |
 
 The dispatch input selects the environment; it does not guess an AWS target.
 Missing configuration or malformed account/region/stage/role fails before OIDC.

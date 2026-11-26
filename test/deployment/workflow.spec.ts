@@ -27,8 +27,11 @@ describe('manual conventional Lambda deployment', () => {
     expect(job.permissions).toEqual({ contents: 'read', 'id-token': 'write' })
     expect(job.environment).toBe('${{ inputs.environment }}')
     expect(job.concurrency).toEqual({ group: 'admin-bff-${{ inputs.environment }}', 'cancel-in-progress': false })
-    for (const key of ['AWS_REGION', 'AWS_STAGE', 'AWS_ACCOUNT_ID', 'AWS_ROLE_ARN']) {
+    for (const key of ['AWS_REGION', 'AWS_STAGE']) {
       expect(job.env[key]).toBe('${{ vars.' + key + ' }}')
+    }
+    for (const key of ['AWS_ACCOUNT_ID', 'AWS_ROLE_ARN']) {
+      expect(job.env[key]).toBe('${{ secrets.' + key + ' }}')
     }
   })
 
